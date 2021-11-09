@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/S550Stang/tinyApp/issues"
   },
-  "homepage": "https://github.com/S550Stang/tinyApp#readme"
+  "homepage": "https://github.com/S550Stang/tinyApp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
