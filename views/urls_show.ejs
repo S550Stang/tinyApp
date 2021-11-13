@@ -9,6 +9,11 @@
       crossorigin="anonymous"
     />
     <title>URL - TinyApp Example</title>
+    <style>
+      .padding_center {
+        padding-left: 480px;
+      }
+    </style>
   </head>
   <%- include('partials/_header') %>
   <body>
@@ -19,6 +24,28 @@
         <p class="card-text">
           Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a>
         </p>
+      </div>
+      <!--Edit start-->
+      <div class="row">
+        <div class="container-fluid padding_center">
+          <form
+            class="form-inline"
+            action="/urls/<%= shortURL %>"
+            method="POST"
+          >
+            <div class="form-group mb-2">
+              <label for="longURL">Edit URL:</label>
+              <input
+                class="form-control"
+                type="text"
+                name="longURL"
+                placeholder="http://"
+                style="width: 300px; margin: 1em"
+              />
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </form>
+        </div>
       </div>
       <div class="card-footer text-muted"></div>
     </div>

@@ -18,5 +18,38 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
     </div>
+
+    <% if(username){ %>
+    <form class="form-inline" action="/logout" method="GET">
+      <div class="form-group mb-2">
+        <label for="longURL"></label>
+        <a class>LOGGED IN AS<%= username%></a>
+        <button type="submit" class="btn btn-primary">logout</button>
+      </div>
+    </form>
+    <%}else{%>
+    <form class="form-inline" action="/login" method="POST">
+      <div class="form-group mb-2">
+        <label for="longURL"></label>
+        <input
+          class="form-control"
+          type="text"
+          name="username"
+          placeholder="Enter username"
+          style="width: 300px; margin: 1em"
+        />
+        <button type="submit" class="btn btn-primary">Login</button>
+      </div>
+    </form>
+    <%}%>
   </nav>
 </header>
+<!--
+<form class="form-inline" action="/logout" method="POST">
+      <div class="form-group mb-2">
+        <label for="longURL"></label>
+        <label>logoutdisplay</label>
+        <button type="submit" class="btn btn-primary">logout</button>
+      </div>
+    </form>
+-->
