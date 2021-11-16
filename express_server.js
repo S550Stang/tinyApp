@@ -6,7 +6,7 @@ const bcrypt = require("bcryptjs");
 const { Template } = require("ejs");
 const app = express();
 const PORT = 8080;
-
+//----------------------REQUIRING LIBRARIES-----------------------------//
 app.use(morgan("dev"));
 app.use(
   cookieSession({
@@ -17,6 +17,7 @@ app.use(
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 
+//----------------------SETTING DATABASES-----------------------------//
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -30,12 +31,16 @@ const urlDatabase = {
 
 let users = {};
 
-////////////////////**helper function */////////
+///---------HELPER FUNCTION TO GENERATE A RANDOM STRING---------------------------//
+
 function generateRandomString() {
   ///generate random 6 digit string!
   let r = Math.random().toString(20).substr(2, 6);
   return r;
 }
+
+///----------HELPER FUNCTION TO FILTER URLS FOR THE USER-----------------------//
+
 function filterUrlsForUser(userId) {
   const urlsObj = {};
   for (let i in urlDatabase) {
@@ -46,6 +51,8 @@ function filterUrlsForUser(userId) {
   }
   return urlsObj;
 }
+
+///-------HELPER FUNCTION TO GET THE USER WITH EMAIL-----------------------------//
 
 function getUserWithEmail(email) {
   const userKeys = Object.keys(users);
@@ -58,6 +65,9 @@ function getUserWithEmail(email) {
     return null;
   }
 }
+
+///----------------HELPER FUNCTION TO GET THE USER WITH ID-----//
+
 function getUserWithId(id) {
   const userKeys = Object.keys(users);
   if (userKeys) {
@@ -70,13 +80,16 @@ function getUserWithId(id) {
   }
 }
 
+///----------------SETTING ROOT ROUTE-----------------------------//
+
 app.get("/", (req, res) => {
   res.redirect("/urls");
 });
 
-///////////////////**Login functionalities */////////////
+///-------------------------LOGIN FUNCTIONALITIES -----------------------------//
 
-// POST LOGIN ROUTE                                             ******************************
+///-----------POST LOGIN ROUTE-----------------------------//
+
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
   const userValue = getUserWithEmail(username);
@@ -92,6 +105,8 @@ app.post("/login", (req, res) => {
   }
 });
 
+///-----------GET LOGIN ROUTE-----------------------------//
+
 app.get("/login", (req, res) => {
   const templateVars = {
     user: getUserWithId(req.session.user_id),
@@ -99,13 +114,13 @@ app.get("/login", (req, res) => {
   res.render("login", templateVars);
 });
 
-//Logout*****************************
+///-----------GET LOGOUT ROUTE-----------------------------//
 app.get("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
 
-//Register***************************
+///-----------POST REGISTER ROUTE-----------------------------//
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
   if (email === "" || password === "") {
@@ -114,7 +129,6 @@ app.post("/register", (req, res) => {
   if (getUserWithEmail(email)) {
     return res.status(400).send("Email Already Exists!");
   }
-  console.log("entering create user", email, password);
   const randomID = generateRandomString();
   users[`${randomID}`] = {
     id: randomID,
@@ -122,15 +136,13 @@ app.post("/register", (req, res) => {
     password: bcrypt.hashSync(password, 10),
   };
   const cookieId = randomID;
-  console.log("creating cookie", cookieId);
   req.session.user_id = cookieId;
-  console.log("userdb", users);
   return res.redirect("/urls");
 });
 
-//////////////////**Start Crud Op *////////////////////
+///-----------STARTING CRUD OPERATIONS-----------------------------//
 
-//Create New Url**************************
+///-----------POST /URLS ROUTE-----------------------------//
 app.post("/urls", (req, res) => {
   let randomString = generateRandomString();
   if (req.session.user_id) {
@@ -143,7 +155,9 @@ app.post("/urls", (req, res) => {
     return res.status(401).send("You Are Not Logged In!");
   }
 });
-// get part of new
+
+///-----------GET /URLS/NEW ROUTE-----------------------------//
+
 app.get("/urls/new", (req, res) => {
   const templateVars = {
     user: getUserWithId(req.session.user_id),
@@ -154,7 +168,9 @@ app.get("/urls/new", (req, res) => {
     res.redirect("/login");
   }
 });
-//View urls****************************
+
+///-----------GET /URLS/:SHORTURL ROUTE (PARAMS)-----------------------------//
+
 app.get("/urls/:shortURL", (req, res) => {
   if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
     const templateVars = {
@@ -169,7 +185,8 @@ app.get("/urls/:shortURL", (req, res) => {
   return res.status(401).send("Need To Login To View ShortURL'S");
 });
 
-//Delete existing url
+//--POST /URLS/:SHORTURL/DELETE ROUTE (DELETE AN EXISTING URL FROM THE DATABASE)--//
+
 app.post("/urls/:shortURL/delete", (req, res) => {
   if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
     delete urlDatabase[req.params.shortURL];
@@ -177,30 +194,30 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   } else if (req.session.user_id) {
     res.status(403).send("Invalid User For This ShortURL!");
   }
-  return res.status(401).send("Need To Login To View ShortURL'S");
+  return res.status(401).send("Need To Login To View ShortURLS");
 });
-/**End Crud op */
 
-/////////////**Redirecting functionalities**////////////////
+///-----------END OF CRUD OPERATIONS-----------------------------//
 
-//Redirecting to List of urls *********
+///-----------REDIRECTING FUNCTIONALITIES-----------------------------//
+
+///-----------GET /URLS ROUTE  -----------------------------//
 app.get("/urls", (req, res) => {
   if (req.session.user_id) {
     const templateVars = {
       urls: filterUrlsForUser(req.session.user_id),
       user: getUserWithId(req.session.user_id),
     };
-
     return res.render("urls_index", templateVars);
   }
   return res.status(401).send("You Need To Login To View The ShortURL'S");
 });
-//Redirecting to create page or Edit page*
+
+///-----------POST /URLS/:SHORTURL ROUTE (PARAMS) CREATING A URL------//
+
 app.post("/urls/:shortURL", (req, res) => {
-  console.log(urlDatabase);
   if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-
     return res.redirect(`/urls`);
   } else if (req.session.user_id) {
     return res.status(403).send("Invalid User For This ShortURL!");
@@ -208,9 +225,8 @@ app.post("/urls/:shortURL", (req, res) => {
   return res.status(401).send("Need To Login To View ShortURL'S");
 });
 
-//Redirecting to create new page**********
+///--GET /U/:SHORTURL ROUTE (REDIRECTING TO URL)----------//
 
-//Redirecting LongUrl location***********
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   if (longURL) {
@@ -219,12 +235,14 @@ app.get("/u/:shortURL", (req, res) => {
   }
   return res.status(404).send("Invalid ShortURL");
 });
+
+///-----------GET /REGISTER ROUTE (RENDERING REGISTER EJS)-----//
+
 app.get("/register", (req, res) => {
-  //res.clearCookie("username");
   res.render("register");
 });
+
+///-----------TinyApp is listening on port: ${PORT}-----------------------------//
 app.listen(PORT, () => {
   console.log(`TinyApp is listening on port: ${PORT}`);
 });
-
-//
