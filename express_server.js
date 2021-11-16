@@ -7,6 +7,16 @@ const { Template } = require("ejs");
 const app = express();
 const PORT = 8080;
 
+app.use(morgan("dev"));
+app.use(
+  cookieSession({
+    name: "session",
+    keys: ["key1", "key2"],
+  })
+);
+app.set("view engine", "ejs");
+app.use(bodyParser.urlencoded({ extended: true }));
+
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -18,7 +28,7 @@ const urlDatabase = {
   },
 };
 
-let users = {}; //
+let users = {};
 
 ////////////////////**helper function */////////
 function generateRandomString() {
@@ -38,11 +48,9 @@ function filterUrlsForUser(userId) {
 }
 
 function getUserWithEmail(email) {
-  const userKeys = Object.keys(users); //
-  console.log("userkeys", userKeys);
+  const userKeys = Object.keys(users);
   if (userKeys) {
     for (let i of userKeys) {
-      // console.log("*******", i + "&&" + users[i]);
       if (email === users[i].email) {
         return users[i];
       }
@@ -51,11 +59,9 @@ function getUserWithEmail(email) {
   }
 }
 function getUserWithId(id) {
-  const userKeys = Object.keys(users); //
-  console.log("userkeys", userKeys);
+  const userKeys = Object.keys(users);
   if (userKeys) {
     for (let i of userKeys) {
-      // console.log("*******", i + "&&" + users[i]);
       if (id === users[i].id) {
         return users[i];
       }
@@ -64,16 +70,6 @@ function getUserWithId(id) {
   }
 }
 
-app.use(morgan("dev"));
-app.use(
-  cookieSession({
-    name: "session",
-    keys: ["key1", "key2"],
-  })
-);
-app.set("view engine", "ejs");
-app.use(bodyParser.urlencoded({ extended: true }));
-// root path
 app.get("/", (req, res) => {
   res.redirect("/urls");
 });
